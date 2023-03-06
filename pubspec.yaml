@@ -39,6 +39,8 @@ dependencies:
   dio: ^5.0.1
   provider: ^6.0.5
   path_provider: ^2.0.13
+  flutter_local_notifications: ^9.6.0
+  timezone: ^0.8.0
 
 dev_dependencies:
   flutter_test:

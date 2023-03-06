@@ -1,52 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:new_project/models/usermodel.dart';
+import 'package:new_project/service/get_user.dart';
+import 'package:new_project/service/local/notification_service.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
-import 'package:new_project/provider/home_provider.dart';
-
-import 'package:provider/provider.dart';
-
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  void initState() {
+    tz.initializeTimeZones();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    HomeProvider provider = Provider.of<HomeProvider>(context);
-    return ChangeNotifierProvider(
-      create: (context) => HomeProvider(),
-      builder: (context, child) {
-        return Scaffold(
-            appBar: AppBar(
-              title: const Text(
-                "Practice",
-                style: TextStyle(color: Colors.black),
-              ),
-              backgroundColor: Colors.white,
-            ),
-            body: Builder(
-              builder: (context) {
-                if (provider.isLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator.adaptive(),
-                  );
-                } else {
-                  return ListView.builder(
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: NetworkImage(
-                              "https://source.unsplash.com/random/$index"),
-                        ),
-                        title: Text(provider.data![index].name.toString()),
-                        subtitle: Text(
-                            "Phone: " + provider.data![index].phone.toString()),
-                        trailing: Text(provider.data![index].id.toString()),
-                      );
-                    },
-                    itemCount: provider.data!.length,
-                  );
-                }
-              },
-            ));
-      },
+    return Scaffold(
+      appBar: AppBar(title: const Text("Alert App")),
+      body: FutureBuilder(
+          future: GetUserService.getUserService(),
+          builder: (context, AsyncSnapshot snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Text(snapshot.error.toString()),
+              );
+            } else {
+              List<UserModel> data = snapshot.data as List<UserModel>;
+              return ListView.builder(
+                itemBuilder: (context, index) {
+                  return Dismissible(
+                      key: UniqueKey(),
+                      onDismissed: (DismissDirection direction) async {
+                        if (direction == DismissDirection.startToEnd) {
+                          await NotificationService().showNotification(
+                              id: index,
+                              title: "Ogohlantirish",
+                              body:
+                                  "${data[index].name.toString()} o'chirildi");
+                        }
+                      },
+                      child: ListTile(
+                        title: Text(data[index].name.toString()),
+                        subtitle: Text(data[index].email.toString()),
+                      ));
+                },
+                itemCount: data.length,
+              );
+            }
+          }),
     );
   }
 }

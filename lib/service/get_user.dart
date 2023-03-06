@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:new_project/models/usermodel.dart';
 
 class GetUserService {
-  Future<dynamic> getUserService() async {
+  static Future<dynamic> getUserService() async {
     try {
       Response response =
           await Dio().get("https://jsonplaceholder.typicode.com/users");
